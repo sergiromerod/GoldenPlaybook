@@ -1,43 +1,72 @@
-SELECT
-concat_ws('-', year, month, day) AS dt
-,country_code AS country
-,city_name AS city
-,district_id AS business_area_id
-,district_name AS business_area_name
-,area_id AS bd_area_id
-,area_name AS bd_area_name
-,shop_id
-,shop_name
-,main_category_opencheck AS shop_category
-,IF(
-    is_dark_kitchen = 1
-    ,'DK'
+SELECT DISTINCT
+a.dt
+,b.country
+,b.city
+,b.business_area_id
+,b.business_area_name
+,b.bd_area_id
+,b.bd_area_name
+,b.ka_type
+,b.shop_category
+,a.shop_id
+,b.shop_name
+FROM (
+    SELECT 
+    concat_ws('-', year, month, day) AS dt
+    ,shop_id
+    ,TO_DATE(last_online_date) AS last_online_date
+    ,DATEDIFF(concat_ws('-', year, month, day),TO_DATE(last_online_date)) AS days_wo_connection
+    FROM soda_international_dwm.dwm_shop_first_last_time_d_whole
+    WHERE concat_ws('-', year, month, day) BETWEEN '$[YYYY-MM-DD - 92D]' AND '$[YYYY-MM-DD - 2D]'
+    AND country_code IN ('MX','CO','CR','PE')
+    AND last_online_date IS NOT NULL
+    AND last_online_date <> ''
+    AND DATEDIFF(concat_ws('-', year, month, day),TO_DATE(last_online_date)) < 15
+) AS a
+
+JOIN (
+    SELECT
+    concat_ws('-', year, month, day) AS dt
+    ,country_code AS country
+    ,city_name AS city
+    ,district_id AS business_area_id
+    ,district_name AS business_area_name
+    ,area_id AS bd_area_id
+    ,area_name AS bd_area_name
+    ,shop_id
+    ,shop_name
+    ,main_category_opencheck AS shop_category
     ,IF(
-        business_type = 3,
-        'Groceries'
+        is_dark_kitchen = 1
+        ,'DK'
         ,IF(
-            ka_type = 'normal'
-            ,'SME'
-            ,UPPER(ka_type)
-        )
-    ) 
-) AS ka_type
-FROM soda_international_dwm.dwm_bizopp_wide_d_whole
-WHERE concat_ws('-', year, month, day) = '$[YYYY-MM-DD - 2D]'
-AND country_code IN ('MX','CO','CR','PE')
-AND IF(
-    is_dark_kitchen = 1
-    ,'DK'
-    ,IF(
-        business_type = 3,
-        'Groceries'
+            business_type = 3,
+            'Groceries'
+            ,IF(
+                ka_type = 'normal'
+                ,'SME'
+                ,UPPER(ka_type)
+            )
+        ) 
+    ) AS ka_type
+    FROM soda_international_dwm.dwm_bizopp_wide_d_whole
+    WHERE concat_ws('-', year, month, day) = '$[YYYY-MM-DD - 2D]'
+    AND country_code IN ('MX','CO','CR','PE')
+    AND IF(
+        is_dark_kitchen = 1
+        ,'DK'
         ,IF(
-            ka_type = 'normal'
-            ,'SME'
-            ,UPPER(ka_type)
-        )
-    ) 
-) <> 'Groceries'
---Top Selling BD Areas
-AND area_id IN ('bdArea|5764607636772029631','bdArea|5764607604136150209','bdArea|5764607604203259073','bdArea|5764607636839138495','bdArea|5764607556614684854','bdArea|5764607537392189620','bdArea|5764607556446912694','bdArea|5764607552634290358','bdArea|5764607527921451188','bdArea|5764607715226484915','bdArea|5764607565510803638','bdArea|5764607542437937332','bdArea|5764607728824418483','bdArea|5764607728295936179','bdArea|5764607728589537459','bdArea|5764607601518903537','bdArea|143312289964','bdArea|253945446610','bdArea|13632798976','bdArea|223717097670','bdArea|4724097262','bdArea|59573010718','bdArea|223931007174','bdArea|10235412757','bdArea|143043854508','bdArea|200883306590','bdArea|172068438069','bdArea|196831609029','bdArea|269191741715','bdArea|268755534078','bdArea|269032358142','bdArea|172211044405','bdArea|188212314321','bdArea|188455583953','bdArea|130569994477','bdArea|265706275238','bdArea|115193675966','bdArea|168293564955','bdArea|117366325438','bdArea|274560451021','bdArea|204075172008','bdArea|92007563408','bdArea|50978881737','bdArea|273285382229','bdArea|109724303534')
---AND shop_id = 5764607670498363469
+            business_type = 3,
+            'Groceries'
+            ,IF(
+                ka_type = 'normal'
+                ,'SME'
+                ,UPPER(ka_type)
+            )
+        ) 
+    ) <> 'Groceries'
+    --Top Selling BD Areas
+    AND area_id IN ('bdArea|5764607636772029631','bdArea|5764607604136150209','bdArea|5764607604203259073','bdArea|5764607636839138495','bdArea|5764607556614684854','bdArea|5764607537392189620','bdArea|5764607556446912694','bdArea|5764607552634290358','bdArea|5764607527921451188','bdArea|5764607715226484915','bdArea|5764607565510803638','bdArea|5764607542437937332','bdArea|5764607728824418483','bdArea|5764607728295936179','bdArea|5764607728589537459','bdArea|5764607601518903537','bdArea|143312289964','bdArea|253945446610','bdArea|13632798976','bdArea|223717097670','bdArea|4724097262','bdArea|59573010718','bdArea|223931007174','bdArea|10235412757','bdArea|143043854508','bdArea|200883306590','bdArea|172068438069','bdArea|196831609029','bdArea|269191741715','bdArea|268755534078','bdArea|269032358142','bdArea|172211044405','bdArea|188212314321','bdArea|188455583953','bdArea|130569994477','bdArea|265706275238','bdArea|115193675966','bdArea|168293564955','bdArea|117366325438','bdArea|274560451021','bdArea|204075172008','bdArea|92007563408','bdArea|50978881737','bdArea|273285382229','bdArea|109724303534')
+    --AND shop_id = 5764607670498363469
+) AS b
+ON a.shop_id = b.shop_id

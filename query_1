@@ -62,21 +62,17 @@ CROSS JOIN (
     SELECT DISTINCT
     concat_ws('-', year, month, day) AS dt
     FROM soda_international_dwm.dwm_bizopp_wide_d_whole
-    WHERE concat_ws('-', year, month, day) BETWEEN '$[YYYY-MM-DD - 92D]' AND '$[YYYY-MM-DD - 2D]'
+    WHERE concat_ws('-', year, month, day) BETWEEN '$[YYYY-MM-DD - 62D]' AND '$[YYYY-MM-DD - 2D]'
 ) AS b
 
 JOIN (
     SELECT 
-    concat_ws('-', year, month, day) AS dt
-    ,shop_id
-    ,TO_DATE(last_online_date) AS last_online_date
-    ,DATEDIFF(concat_ws('-', year, month, day),TO_DATE(last_online_date)) AS days_wo_connection
+    shop_id
     FROM soda_international_dwm.dwm_shop_first_last_time_d_whole
-    WHERE concat_ws('-', year, month, day) BETWEEN '$[YYYY-MM-DD - 92D]' AND '$[YYYY-MM-DD - 2D]'
+    WHERE concat_ws('-', year, month, day) = '$[YYYY-MM-DD - 2D]'
     AND country_code IN ('MX','CO','CR','PE')
     AND last_online_date IS NOT NULL
     AND last_online_date <> ''
-    AND DATEDIFF(concat_ws('-', year, month, day),TO_DATE(last_online_date)) < 15
+    --AND DATEDIFF(concat_ws('-', year, month, day),TO_DATE(last_online_date)) < 15
 ) AS c
-ON b.dt = c.dt
-AND a.shop_id = c.shop_id
+ON a.shop_id = c.shop_id

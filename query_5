@@ -1,5 +1,6 @@
 SELECT DISTINCT
 a.dt
+,c.country
 ,a.shop_id
 ,a.paid_orders
 ,b.canceled_orders

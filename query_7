@@ -1,5 +1,6 @@
 SELECT DISTINCT
 a.dt
+,b.country
 ,a.shop_id
 ,a.shop_uvs
 FROM (

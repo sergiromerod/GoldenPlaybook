@@ -1,5 +1,6 @@
 SELECT DISTINCT
 a.dt
+,b.country
 ,a.shop_id
 ,a.hours_set
 ,a.shop_set_to_open

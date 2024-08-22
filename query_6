@@ -1,5 +1,6 @@
 SELECT
 a.dt
+,a.country
 ,a.shop_id
 ,a.shop_name
 ,COUNT(DISTINCT a.user_id) AS total_users
@@ -8,6 +9,7 @@ a.dt
 FROM (
     SELECT
     a.dt
+    ,a.country
     ,a.shop_id
     ,a.shop_name
     --,a.data_dt
@@ -16,6 +18,7 @@ FROM (
     FROM (
         SELECT DISTINCT
         a.dt
+        ,a.country
         ,a.shop_id
         ,a.shop_name
         ,b.data_dt
@@ -121,10 +124,13 @@ FROM (
     ON a.data_dt = b.dt
     AND a.shop_id = b.shop_id
 
-    GROUP BY a.dt,a.shop_id,a.shop_name,b.user_id
+    GROUP BY a.dt,a.country,a.shop_id,a.shop_name,b.user_id
 
     --ORDER BY a.dt, b.user_id
 
 ) AS a
 
-GROUP BY a.dt,a.shop_id,a.shop_name
+--WHERE a.country = 'PE'
+
+GROUP BY a.dt,a.country,a.shop_id,a.shop_name
+

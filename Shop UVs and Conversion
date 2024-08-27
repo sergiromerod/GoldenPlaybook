@@ -3,6 +3,7 @@ a.dt
 ,b.country
 ,a.shop_id
 ,a.shop_uvs
+,a.p2
 FROM (
     SELECT
     concat_ws('-', year, month, day) AS dt
@@ -10,6 +11,7 @@ FROM (
     ,shop_exp_user_cnt_app AS shop_uvs
     ,shop_enter_user_cnt_app AS shop_enter_uvs
     ,click_pay_user_cnt_app AS shop_pay_uvs
+    ,ROUND(click_pay_user_cnt_app/shop_enter_user_cnt_app,4) AS p2
     FROM soda_international_dwm.dwm_traffic_shop_convert_d_whole
     WHERE country_code IN ('MX','CO','CR','PE')
     AND concat_ws('-', year, month, day) BETWEEN '$[YYYY-MM-DD - 62D]' AND '$[YYYY-MM-DD - 2D]'

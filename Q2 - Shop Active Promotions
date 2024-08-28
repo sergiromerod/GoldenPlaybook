@@ -84,14 +84,7 @@ JOIN (
     a.dt
     ,b.country
     ,b.city
-    ,b.business_area_id
-    ,b.business_area_name
-    ,b.bd_area_id
-    ,b.bd_area_name
-    ,b.ka_type
-    ,b.shop_category
     ,a.shop_id
-    ,b.shop_name
     FROM (
         SELECT 
         concat_ws('-', year, month, day) AS dt
@@ -111,26 +104,7 @@ JOIN (
         concat_ws('-', year, month, day) AS dt
         ,country_code AS country
         ,city_name AS city
-        ,district_id AS business_area_id
-        ,district_name AS business_area_name
-        ,area_id AS bd_area_id
-        ,area_name AS bd_area_name
         ,shop_id
-        ,shop_name
-        ,main_category_opencheck AS shop_category
-        ,IF(
-            is_dark_kitchen = 1
-            ,'DK'
-            ,IF(
-                business_type = 3,
-                'Groceries'
-                ,IF(
-                    ka_type = 'normal'
-                    ,'SME'
-                    ,UPPER(ka_type)
-                )
-            ) 
-        ) AS ka_type
         FROM soda_international_dwm.dwm_bizopp_wide_d_whole
         WHERE concat_ws('-', year, month, day) = '$[YYYY-MM-DD - 2D]'
         AND country_code IN ('MX','CO','CR','PE')

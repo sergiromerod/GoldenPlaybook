@@ -3,7 +3,8 @@ a.dt
 ,b.country
 ,a.shop_id
 ,a.shop_uvs
-,a.p2
+,a.shop_enter_uvs
+,a.shop_pay_uvs
 FROM (
     SELECT
     concat_ws('-', year, month, day) AS dt

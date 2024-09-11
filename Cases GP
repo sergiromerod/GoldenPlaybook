@@ -1,0 +1,100 @@
+SELECT
+a.country_code
+,a.city_name
+,a.ka_type
+,a.shop_id
+,a.shop_name
+,b.initial_date
+,b.final_date
+,c.first_online_date
+,IF(DATEDIFF(b.initial_date,c.first_online_date) >= 60,'Old','New') AS shop_type
+,d.orders_60d
+,d.initial_month_orders
+,d.final_month_orders
+,IF(d.final_month_orders IS NULL,1,ROUND((d.final_month_orders - d.initial_month_orders)/d.initial_month_orders,4)) AS order_growth_rate
+,d.final_month_orders - COALESCE(d.initial_month_orders,0) AS order_growth
+FROM (
+    SELECT
+    country_code
+    ,city_name
+    ,shop_id
+    ,shop_name
+    ,IF(
+        is_dark_kitchen = 1
+        ,'DK'
+        ,IF(
+            business_type = 3,
+            'Groceries'
+            ,IF(
+                ka_type = 'normal'
+                ,'SME'
+                ,UPPER(ka_type)
+            )
+        ) 
+    ) AS ka_type
+    FROM soda_international_dwm.dwm_bizopp_wide_d_whole
+    WHERE concat_ws('-', year, month, day) = '2024-09-09'
+    AND country_code IN ('MX','CO','CR','PE')
+    
+    AND IF(
+        is_dark_kitchen = 1
+        ,'DK'
+        ,IF(
+            business_type = 3,
+            'Groceries'
+            ,IF(
+                ka_type = 'normal'
+                ,'SME'
+                ,UPPER(ka_type)
+            )
+        ) 
+    ) = 'SME'
+    
+) AS a
+
+CROSS JOIN (
+    SELECT
+    TO_DATE('2024-06-01') AS initial_date
+    ,TO_DATE('2024-08-31') AS final_date
+) AS b
+
+JOIN (
+    SELECT
+    shop_id
+    ,signed_submitter
+    ,TO_DATE(first_online_time) AS first_online_date
+    ,TO_DATE(signed_local_time) AS signed_date
+    FROM soda_international_dwm.dwm_bizopp_sign_process_d_whole
+    WHERE concat_ws('-', year, month, day) = '2024-09-09'
+    AND country_code IN ('MX','CO','CR','PE')
+    AND TO_DATE(first_online_time) IS NOT NULL
+) AS c
+ON a.shop_id = c.shop_id
+
+JOIN (
+    SELECT
+    shop_id
+    ,SUM(complete_order_num) AS orders_60d
+    ,SUM(CASE WHEN MONTH(concat_ws('-', year, month, day)) = 6 THEN complete_order_num END) AS initial_month_orders
+    ,SUM(CASE WHEN MONTH(concat_ws('-', year, month, day)) = 8 THEN complete_order_num END) AS final_month_orders
+    FROM soda_international_dwm.dwm_shop_wide_d_whole
+    WHERE country_code IN ('MX','CO','CR','PE')
+    AND concat_ws('-', year, month, day) BETWEEN '2024-06-01' AND '2024-08-31'
+    GROUP BY shop_id
+    HAVING SUM(complete_order_num) > 0
+) AS d
+ON a.shop_id = d.shop_id
+
+WHERE IF(
+    IF(DATEDIFF(b.initial_date,c.first_online_date) >= 60,'Old','New') = 'Old'
+    ,IF(
+        d.initial_month_orders >= 150 OR d.final_month_orders >= 150
+        ,'Yes'
+        ,'No'
+    )
+    ,IF(
+        d.final_month_orders >= 150
+        ,'Yes'
+        ,'No'
+    )
+) = 'Yes'
